@@ -30,6 +30,7 @@ const corsOptions: cors.CorsOptions = {
       'http://localhost:5173',
       'http://localhost:3000',
       'http://localhost:5174',
+      'https://quizegrade.netlify.app', // Your Netlify frontend
       process.env.FRONTEND_URL,
       process.env.VITE_FRONTEND_URL,
       process.env.NETLIFY_URL,
