@@ -10,6 +10,7 @@
     "build": "tsc -b && vite build",
     "build:server": "tsc -p tsconfig.server.json",
     "start": "node dist/server/index.js",
+    "start:server": "cd server && npx tsx index.ts",
     "lint": "eslint .",
     "preview": "vite preview"
   },

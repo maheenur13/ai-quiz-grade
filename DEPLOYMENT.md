@@ -4,11 +4,17 @@ This guide will help you deploy PromptGrade to production.
 
 ## Overview
 
-PromptGrade consists of two parts:
-1. **Frontend** - React app (deploy to Netlify, Vercel, etc.)
-2. **Backend** - Express.js API server (deploy to Railway, Render, Fly.io, etc.)
+PromptGrade consists of two parts in the **same repository**:
+1. **Frontend** - React app in root directory (deploy to Netlify, Vercel, etc.)
+2. **Backend** - Express.js API server in `server/` directory (deploy to Railway, Render, Fly.io, etc.)
+
+> **Important**: Since both are in the same repo, you'll deploy them separately:
+> - Backend: Configure the platform to use the `server/` directory
+> - Frontend: Configure the platform to use the root directory (default)
 
 ## Step 1: Deploy Backend
+
+> **Note**: Since both frontend and backend are in the same repository, you need to configure the deployment platform to use the `server` directory.
 
 ### Option A: Deploy to Railway (Recommended)
 
@@ -19,8 +25,9 @@ PromptGrade consists of two parts:
 3. **Configure your project:**
    - Select your repository
    - Railway will auto-detect it's a Node.js project
-   - Set the **Root Directory** to `/` (or leave blank)
-   - Set the **Start Command** to: `cd server && npx tsx index.ts` or create a `package.json` script
+   - **Important**: Set the **Root Directory** to `/` (root - this is where package.json is)
+   - Set the **Start Command** to: `pnpm start:server` or `cd server && npx tsx index.ts`
+   - Railway will automatically run `pnpm install` or `npm install` in the root directory (where all dependencies are)
 
 4. **Add Environment Variables** in Railway dashboard:
    ```
@@ -39,9 +46,9 @@ PromptGrade consists of two parts:
 
 2. **Create a new Web Service:**
    - Connect your GitHub repository
-   - Set **Root Directory** to `server`
-   - Set **Build Command**: `npm install` or `pnpm install`
-   - Set **Start Command**: `npx tsx index.ts` or `node dist/index.js` (if you build first)
+   - **Important**: Set **Root Directory** to `/` (root - this is where package.json is)
+   - Set **Build Command**: `pnpm install` or `npm install` (install dependencies from root)
+   - Set **Start Command**: `pnpm start:server` or `cd server && npx tsx index.ts`
 
 3. **Add Environment Variables:**
    ```
@@ -72,16 +79,19 @@ PromptGrade consists of two parts:
 
 ## Step 2: Deploy Frontend to Netlify
 
+> **Note**: Since both frontend and backend are in the same repository, Netlify will build from the root directory (which is correct for the frontend).
+
 1. **Create a Netlify account** at [netlify.com](https://netlify.com)
 
 2. **Connect your repository:**
    - Go to "Add new site" → "Import an existing project"
-   - Connect your GitHub repository
+   - Connect your GitHub repository (the same repo that has both frontend and backend)
 
 3. **Configure build settings:**
+   - **Base directory**: `/` (root - leave blank or set to `/`)
    - **Build command**: `pnpm build` or `npm run build`
    - **Publish directory**: `dist`
-   - **Base directory**: `/` (root)
+   - Netlify will automatically ignore the `server` folder since it's not part of the frontend build
 
 4. **Add Environment Variables** in Netlify dashboard:
    - Go to Site settings → Environment variables
@@ -92,6 +102,7 @@ PromptGrade consists of two parts:
      ```
    - **Important**: Replace `https://your-backend-url.com/api` with your actual backend URL from Step 1
    - Make sure to include `/api` at the end
+   - Example: `https://promptgrade-api.railway.app/api`
 
 5. **Deploy:**
    - Netlify will automatically deploy on every push to your main branch
