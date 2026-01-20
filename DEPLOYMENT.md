@@ -51,13 +51,20 @@ This is the easiest option since both frontend and backend are in the same repo.
 
 ### Troubleshooting Netlify Functions
 
-If you see errors like `Cannot find module 'express'`:
+If you see errors like `Cannot find module 'express'` or `Cannot find module 'mongoose'`:
 
 1. **Check build logs**: Go to Netlify dashboard → Deploys → Click on the latest deploy → View build logs
 2. **Verify dependencies**: Ensure all backend dependencies (`express`, `cors`, `mongoose`, `serverless-http`, `@netlify/functions`) are in `dependencies` (not `devDependencies`) in `package.json`
 3. **Check Node version**: Netlify should use Node 18+ (check in Site settings → Build & deploy → Environment)
-4. **Rebuild**: Try triggering a new deployment after making changes
-5. **Check function logs**: Go to Functions tab in Netlify dashboard to see runtime errors
+4. **Check package manager**: If using pnpm, ensure Netlify is configured to use it (or switch to npm in build command)
+5. **Clear build cache**: In Netlify dashboard → Site settings → Build & deploy → Clear cache and retry
+6. **Rebuild**: Try triggering a new deployment after making changes
+7. **Check function logs**: Go to Functions tab in Netlify dashboard to see runtime errors
+
+**If mongoose still fails after bundling:**
+- Mongoose has native dependencies that might not bundle well
+- Try using `mongodb` driver directly instead of mongoose
+- Or deploy backend separately to Railway/Render (Option 2)
 
 ### Verify Deployment
 
