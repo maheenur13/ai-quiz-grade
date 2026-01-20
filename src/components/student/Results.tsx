@@ -57,7 +57,23 @@ export default function Results() {
     );
   }
 
-  const percentage = Math.round((evaluation.score / evaluation.maxScore) * 100);
+  // Recalculate score from actual results using partial scores
+  // This ensures accuracy and handles partial credit for written answers
+  const totalQuestions = quiz.questions.length;
+  const calculatedScore = evaluation.results.reduce((sum, r) => {
+    // Use partialScore if available, otherwise use isCorrect (1.0 or 0.0)
+    const score = r.partialScore !== undefined ? r.partialScore : (r.isCorrect ? 1.0 : 0.0);
+    return sum + score;
+  }, 0);
+  
+  const actualScore = Math.round(calculatedScore * 100) / 100; // Round to 2 decimal places
+  const maxScore = totalQuestions;
+  
+  // Use recalculated score if it differs significantly from AI-reported score
+  const displayScore = Math.abs(actualScore - evaluation.score) > 0.01 ? actualScore : evaluation.score;
+  const displayMaxScore = maxScore !== evaluation.maxScore ? maxScore : evaluation.maxScore;
+  
+  const percentage = Math.round((displayScore / displayMaxScore) * 100);
   const isPassing = percentage >= 60;
 
   return (
@@ -82,7 +98,7 @@ export default function Results() {
           >
             <Space orientation="vertical" align="center" style={{ width: "100%" }}>
               <Title level={2} style={{ margin: 0, fontWeight: 700 }}>
-                Score: {evaluation.score} / {evaluation.maxScore}
+                Score: {displayScore} / {displayMaxScore}
               </Title>
               <Text strong style={{ fontSize: 24, fontWeight: 600 }}>
                 {percentage}%
@@ -105,16 +121,50 @@ export default function Results() {
 
           {quiz.questions.map((question, index) => {
             const questionId = getQuestionId(question);
-            const result = evaluation.results.find((r) => String(r.questionId) === questionId);
-            const studentAnswer = submission.answers.find((a) => String(a.questionId) === questionId);
+            
+            // Try to find result by question ID first
+            let result = evaluation.results.find((r) => {
+              const rId = String(r.questionId || "").trim();
+              const qId = String(questionId || "").trim();
+              return rId === qId && rId !== "";
+            });
+            
+            // Fallback to index-based matching if ID matching fails
+            if (!result && evaluation.results[index]) {
+              result = evaluation.results[index];
+            }
+            
+            // Try to find student answer by question ID first
+            let studentAnswer = submission.answers.find((a) => {
+              const aId = String(a.questionId || "").trim();
+              const qId = String(questionId || "").trim();
+              return aId === qId && aId !== "";
+            });
+            
+            // Fallback to index-based matching if ID matching fails
+            if (!studentAnswer && submission.answers[index]) {
+              studentAnswer = submission.answers[index];
+            }
+            
             const isCorrect = result?.isCorrect ?? false;
+            const partialScore = result?.partialScore;
+            const hasPartialCredit = partialScore !== undefined && partialScore > 0 && partialScore < 1;
+            const isPartial = hasPartialCredit && isCorrect;
+            
+            // Determine border color based on correctness and partial credit
+            let borderColor = "#ff4d4f"; // Red for wrong
+            if (isCorrect && !hasPartialCredit) {
+              borderColor = "#52c41a"; // Green for fully correct
+            } else if (isPartial) {
+              borderColor = "#faad14"; // Orange/amber for partial credit
+            }
 
             return (
               <Card
                 key={questionId}
                 style={{
                   marginBottom: 16,
-                  borderColor: isCorrect ? "#52c41a" : "#ff4d4f",
+                  borderColor: borderColor,
                 }}
               >
                 <Space orientation="vertical" size="middle" style={{ width: "100%" }}>
@@ -125,7 +175,11 @@ export default function Results() {
                       </Text>
                     </div>
                     <div>
-                      {isCorrect ? (
+                      {isPartial ? (
+                        <Tag color="warning" style={{ fontSize: 14, padding: "4px 12px" }}>
+                          Partial: {Math.round((partialScore || 0) * 100)}%
+                        </Tag>
+                      ) : isCorrect ? (
                         <CheckCircleOutlined style={{ color: "#52c41a", fontSize: 24 }} />
                       ) : (
                         <CloseCircleOutlined style={{ color: "#ff4d4f", fontSize: 24 }} />

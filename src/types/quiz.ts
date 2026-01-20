@@ -31,6 +31,7 @@ export interface QuestionResult {
   questionId: string;
   isCorrect: boolean;
   feedback: string;
+  partialScore?: number; // 0-1, where 1 is full credit, 0.5 is half credit, etc.
 }
 
 export interface EvaluationResult {

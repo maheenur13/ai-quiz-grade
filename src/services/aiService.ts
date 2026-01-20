@@ -36,6 +36,7 @@ interface EvaluationResponse {
     questionId: string;
     isCorrect: boolean;
     feedback: string;
+    partialScore?: number; // 0-1 for partial credit (e.g., 0.5 = 50% credit)
   }>;
 }
 
@@ -128,7 +129,7 @@ export async function evaluateAnswers(
     throw new Error("Groq API key is not configured. Please set VITE_GROQ_API_KEY in your .env file.");
   }
 
-  const systemMessage = "You are an AI exam evaluator. Evaluate answers objectively. Return ONLY valid JSON. For written questions, always include the correct/expected answer in the feedback.";
+  const systemMessage = "You are an AI exam evaluator. Evaluate answers objectively. Return ONLY valid JSON. For written questions, use partial scoring based on how well the answer matches the expected answer.";
 
   // Build a map of questions with their correct answers for reference
   const questionsWithAnswers = quiz.questions.map((q) => ({
@@ -145,10 +146,35 @@ Student Answers:
 ${JSON.stringify(answers, null, 2)}
 
 Instructions:
-- For multiple choice questions: Compare student answer with correctAnswer. If incorrect, feedback should mention the correct option.
-- For written questions: Evaluate if the student's answer demonstrates understanding. If incorrect or incomplete, feedback MUST include the correct/expected answer or key points. For example: "The correct answer should be: [provide the expected answer or key points]"
-- Score: Count correct answers only.
-- maxScore: Total number of questions.
+- For multiple choice questions (single/multiple): 
+  * Compare student answer with correctAnswer exactly
+  * isCorrect: true if exact match, false otherwise
+  * partialScore: not needed (use 1.0 if correct, 0.0 if wrong)
+  * If incorrect, feedback should mention the correct option(s)
+
+- For written/description questions:
+  * Evaluate how well the student's answer matches the expected answer
+  * Calculate a similarity score (0.0 to 1.0) based on:
+    - Key concepts covered
+    - Accuracy of information
+    - Completeness of answer
+  * Partial scoring rules:
+    * If similarity >= 0.4 (40%): Give partial credit
+      - partialScore: similarity score (0.4 to 1.0)
+      - isCorrect: true if partialScore >= 0.4, false otherwise
+    * If similarity < 0.4: No credit
+      - partialScore: 0.0
+      - isCorrect: false
+  * Feedback MUST include:
+    - What was correct in their answer
+    - What was missing or incorrect
+    - The complete correct/expected answer or key points
+    - Example: "Your answer covers [X] correctly but misses [Y]. The complete answer should be: [expected answer]"
+
+- Score calculation:
+  * For each question: score = partialScore (or 1.0 if isCorrect=true and no partialScore, 0.0 if isCorrect=false)
+  * Total score = sum of all question scores
+  * maxScore = total number of questions
 
 Return JSON EXACTLY in this schema:
 {
@@ -158,7 +184,8 @@ Return JSON EXACTLY in this schema:
     {
       "questionId": string,
       "isCorrect": boolean,
-      "feedback": string
+      "feedback": string,
+      "partialScore": number (0.0 to 1.0, required for written questions, optional for others)
     }
   ]
 }`;
@@ -193,13 +220,55 @@ Return JSON EXACTLY in this schema:
 
     // Ensure all results have required fields with defaults
     evaluation.results = evaluation.results.map((result) => {
-      const r = result as { questionId?: string; isCorrect?: boolean; feedback?: string; feedbackText?: string };
+      const r = result as { 
+        questionId?: string; 
+        isCorrect?: boolean; 
+        feedback?: string; 
+        feedbackText?: string;
+        partialScore?: number;
+      };
+      
+      // Determine partialScore if not provided
+      let partialScore = r.partialScore;
+      if (partialScore === undefined) {
+        // If isCorrect is true and no partialScore, assume full credit
+        // If isCorrect is false and no partialScore, assume no credit
+        partialScore = r.isCorrect ? 1.0 : 0.0;
+      }
+      
+      // Ensure partialScore is between 0 and 1
+      partialScore = Math.max(0, Math.min(1, partialScore));
+      
+      // For written questions, enforce 40% threshold
+      const question = quiz.questions.find(q => {
+        const qId = q.id || (q as { id?: string; _id?: string })._id;
+        return String(qId) === String(r.questionId);
+      });
+      
+      if (question?.type === "written") {
+        // If partialScore < 0.4, set to 0 and mark as incorrect
+        if (partialScore < 0.4) {
+          partialScore = 0.0;
+          r.isCorrect = false;
+        } else {
+          // If partialScore >= 0.4, ensure isCorrect reflects this
+          r.isCorrect = true;
+        }
+      }
+      
       return {
         questionId: String(r.questionId || ""),
         isCorrect: Boolean(r.isCorrect),
         feedback: String(r.feedback || r.feedbackText || ""),
+        partialScore: partialScore,
       };
     });
+    
+    // Recalculate total score from partial scores
+    const calculatedScore = evaluation.results.reduce((sum, r) => {
+      return sum + (r.partialScore ?? (r.isCorrect ? 1.0 : 0.0));
+    }, 0);
+    evaluation.score = Math.round(calculatedScore * 100) / 100; // Round to 2 decimal places
 
     return evaluation;
   } catch (error) {
