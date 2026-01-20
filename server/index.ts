@@ -1,9 +1,5 @@
-import express from "express";
-import cors from "cors";
 import dotenv from "dotenv";
-import mongoose from "mongoose";
-import quizRoutes from "./routes/quizRoutes.js";
-import submissionRoutes from "./routes/submissionRoutes.js";
+import app, { connectDatabase } from "./app.js";
 
 dotenv.config();
 
@@ -15,87 +11,17 @@ if (process.env.NODE_ENV !== "production") {
   console.log("📋 Environment variables found:", envVars.length > 0 ? envVars.join(", ") : "none");
 }
 
-const app = express();
 const PORT = process.env.PORT || 3001;
 
-// Middleware
-// Configure CORS to allow requests from frontend
-const corsOptions: cors.CorsOptions = {
-  origin: function (origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) {
-    // Allow requests with no origin (like mobile apps or curl requests)
-    if (!origin) return callback(null, true);
-    
-    // List of allowed origins
-    const allowedOrigins = [
-      'http://localhost:5173',
-      'http://localhost:3000',
-      'http://localhost:5174',
-      'https://quizegrade.netlify.app', // Your Netlify frontend
-      process.env.FRONTEND_URL,
-      process.env.VITE_FRONTEND_URL,
-      process.env.NETLIFY_URL,
-    ].filter(Boolean) as string[];
-    
-    // Check if origin is allowed
-    if (allowedOrigins.some(allowed => origin.includes(allowed)) || 
-        origin.includes('netlify.app') || 
-        origin.includes('localhost')) {
-      callback(null, true);
-    } else {
-      // In production, you might want to be more strict
-      if (process.env.NODE_ENV === 'production') {
-        console.warn(`Blocked origin: ${origin}`);
-      }
-      callback(null, true); // Allow all for now, adjust as needed
-    }
-  },
-  credentials: true,
-};
-
-app.use(cors(corsOptions));
-app.use(express.json());
-
-// MongoDB connection
-// Try multiple possible environment variable names
-const MONGODB_URI = 
-  process.env.MONGODB_URI || 
-  process.env.MONGO_URI || 
-  process.env.MONGODB_URL || 
-  process.env.DATABASE_URL || 
-  "";
-
-if (!MONGODB_URI) {
-  console.error("❌ MongoDB URI is not set in environment variables");
-  console.error("Please set one of the following in your .env file:");
-  console.error("  - MONGODB_URI");
-  console.error("  - MONGO_URI");
-  console.error("  - MONGODB_URL");
-  console.error("  - DATABASE_URL");
-  
-  process.exit(1);
-}
-
-mongoose
-  .connect(MONGODB_URI)
+// Connect to MongoDB and start server (for local development)
+connectDatabase()
   .then(() => {
-    console.log("✅ Connected to MongoDB successfully");
+    app.listen(PORT, () => {
+      console.log(`🚀 Server is running on port ${PORT}`);
+      console.log(`📡 API endpoint: http://localhost:${PORT}/api`);
+    });
   })
   .catch((error) => {
-    console.error("❌ MongoDB connection error:", error.message);
-    console.error("Please check your MongoDB URI and ensure MongoDB is running");
+    console.error("Failed to start server:", error);
     process.exit(1);
   });
-
-// Routes
-app.use("/api/quizzes", quizRoutes);
-app.use("/api/submissions", submissionRoutes);
-
-// Health check
-app.get("/api/health", (req, res) => {
-  res.json({ status: "ok", message: "API is running" });
-});
-
-app.listen(PORT, () => {
-  console.log(`🚀 Server is running on port ${PORT}`);
-  console.log(`📡 API endpoint: http://localhost:${PORT}/api`);
-});

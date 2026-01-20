@@ -1,12 +1,21 @@
 // Get API URL from environment variable
-// In production, this should be set in Netlify environment variables
+// In production on Netlify, use relative URLs (same domain)
 // For local development, it defaults to localhost
 const getApiBaseUrl = () => {
   const envUrl = import.meta.env.VITE_API_URL;
+  
+  // If VITE_API_URL is explicitly set, use it
   if (envUrl) {
     // Remove trailing slash if present
     return envUrl.endsWith('/') ? envUrl.slice(0, -1) : envUrl;
   }
+  
+  // If we're on Netlify (production), use relative URLs
+  // This allows the API to work on the same domain via Netlify Functions
+  if (import.meta.env.PROD && typeof window !== 'undefined' && window.location.hostname.includes('netlify.app')) {
+    return '/api';
+  }
+  
   // Default to localhost for development
   return "http://localhost:3001/api";
 };
