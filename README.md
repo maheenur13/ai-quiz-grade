@@ -65,6 +65,16 @@ The application will be available at `http://localhost:5173`
 pnpm build
 ```
 
+## Deployment
+
+For detailed deployment instructions, see [DEPLOYMENT.md](./DEPLOYMENT.md).
+
+**Quick Deploy:**
+- **Frontend**: Deploy to [Netlify](https://netlify.com) or [Vercel](https://vercel.com)
+- **Backend**: Deploy to [Railway](https://railway.app), [Render](https://render.com), or [Fly.io](https://fly.io)
+
+**Important**: After deploying the backend, update the `VITE_API_URL` environment variable in your frontend deployment platform with your backend URL (e.g., `https://your-backend.railway.app/api`).
+
 ## Usage
 
 ### Teacher Flow

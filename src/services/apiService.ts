@@ -1,4 +1,17 @@
-const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:3001/api";
+// Get API URL from environment variable
+// In production, this should be set in Netlify environment variables
+// For local development, it defaults to localhost
+const getApiBaseUrl = () => {
+  const envUrl = import.meta.env.VITE_API_URL;
+  if (envUrl) {
+    // Remove trailing slash if present
+    return envUrl.endsWith('/') ? envUrl.slice(0, -1) : envUrl;
+  }
+  // Default to localhost for development
+  return "http://localhost:3001/api";
+};
+
+const API_BASE_URL = getApiBaseUrl();
 
 async function fetchAPI(endpoint: string, options?: RequestInit) {
   const response = await fetch(`${API_BASE_URL}${endpoint}`, {

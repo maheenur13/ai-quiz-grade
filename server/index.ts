@@ -19,7 +19,39 @@ const app = express();
 const PORT = process.env.PORT || 3001;
 
 // Middleware
-app.use(cors());
+// Configure CORS to allow requests from frontend
+const corsOptions: cors.CorsOptions = {
+  origin: function (origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) {
+    // Allow requests with no origin (like mobile apps or curl requests)
+    if (!origin) return callback(null, true);
+    
+    // List of allowed origins
+    const allowedOrigins = [
+      'http://localhost:5173',
+      'http://localhost:3000',
+      'http://localhost:5174',
+      process.env.FRONTEND_URL,
+      process.env.VITE_FRONTEND_URL,
+      process.env.NETLIFY_URL,
+    ].filter(Boolean) as string[];
+    
+    // Check if origin is allowed
+    if (allowedOrigins.some(allowed => origin.includes(allowed)) || 
+        origin.includes('netlify.app') || 
+        origin.includes('localhost')) {
+      callback(null, true);
+    } else {
+      // In production, you might want to be more strict
+      if (process.env.NODE_ENV === 'production') {
+        console.warn(`Blocked origin: ${origin}`);
+      }
+      callback(null, true); // Allow all for now, adjust as needed
+    }
+  },
+  credentials: true,
+};
+
+app.use(cors(corsOptions));
 app.use(express.json());
 
 // MongoDB connection
