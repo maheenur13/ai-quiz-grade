@@ -1,9 +1,10 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { Card, Table, Tag, Space, Typography, Button, Statistic, Row, Col, Divider } from "antd";
-import { ArrowLeftOutlined, UserOutlined, TrophyOutlined } from "@ant-design/icons";
+import { Card, Table, Tag, Space, Typography, Button, Statistic, Row, Col, Divider, Modal } from "antd";
+import { ArrowLeftOutlined, UserOutlined, TrophyOutlined, EyeOutlined } from "@ant-design/icons";
 import { getQuiz, getSubmissionsByQuizId } from "../../services/storageService";
 import type { Quiz, Submission } from "../../types/quiz";
+import SubmissionDetails from "./SubmissionDetails";
 
 const { Title, Text } = Typography;
 
@@ -18,17 +19,10 @@ export default function QuizSubmissions() {
   const [quiz, setQuiz] = useState<Quiz | null>(null);
   const [submissions, setSubmissions] = useState<Submission[]>([]);
   const [loading, setLoading] = useState(true);
+  const [selectedSubmission, setSelectedSubmission] = useState<Submission | null>(null);
+  const [isModalVisible, setIsModalVisible] = useState(false);
 
-  useEffect(() => {
-    if (!id) {
-      navigate("/");
-      return;
-    }
-
-    loadData();
-  }, [id, navigate]);
-
-  const loadData = async () => {
+  const loadData = useCallback(async () => {
     setLoading(true);
     try {
       const loadedQuiz = await getQuiz(id!);
@@ -47,7 +41,16 @@ export default function QuizSubmissions() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [id, navigate]);
+
+  useEffect(() => {
+    if (!id) {
+      navigate("/");
+      return;
+    }
+
+    loadData();
+  }, [id, navigate, loadData]);
 
   if (loading) {
     return (
@@ -132,6 +135,22 @@ export default function QuizSubmissions() {
         );
       },
     },
+    {
+      title: "Actions",
+      key: "actions",
+      render: (_: unknown, record: Submission) => (
+        <Button
+          type="primary"
+          icon={<EyeOutlined />}
+          onClick={() => {
+            setSelectedSubmission(record);
+            setIsModalVisible(true);
+          }}
+        >
+          View
+        </Button>
+      ),
+    },
   ];
 
   return (
@@ -206,6 +225,22 @@ export default function QuizSubmissions() {
           )}
         </Space>
       </Card>
+
+      <Modal
+        title={`Submission Details - ${selectedSubmission?.studentName || ""}`}
+        open={isModalVisible}
+        onCancel={() => {
+          setIsModalVisible(false);
+          setSelectedSubmission(null);
+        }}
+        footer={null}
+        width={900}
+        style={{ top: 20 }}
+      >
+        {selectedSubmission && quiz && (
+          <SubmissionDetails quiz={quiz} submission={selectedSubmission} />
+        )}
+      </Modal>
     </div>
   );
 }
