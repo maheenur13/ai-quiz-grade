@@ -9,7 +9,7 @@ router.get("/", async (req, res) => {
   try {
     const quizzes = await Quiz.find().sort({ updatedAt: -1 });
     res.json(quizzes);
-  } catch (error) {
+  } catch  {
     res.status(500).json({ error: "Failed to fetch quizzes" });
   }
 });
@@ -22,7 +22,7 @@ router.get("/:id", async (req, res) => {
       return res.status(404).json({ error: "Quiz not found" });
     }
     res.json(quiz);
-  } catch (error) {
+  } catch {
     res.status(500).json({ error: "Failed to fetch quiz" });
   }
 });
@@ -35,7 +35,7 @@ router.get("/link/:link", async (req, res) => {
       return res.status(404).json({ error: "Quiz not found or not published" });
     }
     res.json(quiz);
-  } catch (error) {
+  } catch {
     res.status(500).json({ error: "Failed to fetch quiz" });
   }
 });
@@ -53,7 +53,7 @@ router.post("/", async (req, res) => {
     );
 
     res.json(quiz);
-  } catch (error) {
+  } catch  {
     res.status(500).json({ error: "Failed to save quiz" });
   }
 });
@@ -66,7 +66,7 @@ router.delete("/:id", async (req, res) => {
       return res.status(404).json({ error: "Quiz not found" });
     }
     res.json({ message: "Quiz deleted successfully" });
-  } catch (error) {
+  } catch {
     res.status(500).json({ error: "Failed to delete quiz" });
   }
 });

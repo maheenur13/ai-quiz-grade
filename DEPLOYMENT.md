@@ -31,9 +31,10 @@ This is the easiest option since both frontend and backend are in the same repo.
    - Go to Site settings → Environment variables
    - Add the following:
      ```
-     VITE_GROQ_API_KEY=your_groq_api_key_here
+     GROQ_API_KEY=your_groq_api_key_here
      MONGODB_URI=your_mongodb_connection_string
      ```
+   - **Note**: The Groq API key is now server-side only (not exposed to the client)
    - **Note**: You don't need to set `VITE_API_URL` - the app will automatically use relative URLs (`/api`) when deployed on Netlify
 
 5. **Deploy:**
@@ -164,12 +165,12 @@ If you prefer to deploy the backend separately (e.g., to Railway or Render), fol
    - Go to Site settings → Environment variables
    - Add the following:
      ```
-     VITE_GROQ_API_KEY=your_groq_api_key_here
      VITE_API_URL=https://your-backend-url.com/api
      ```
    - **Important**: Replace `https://your-backend-url.com/api` with your actual backend URL from Step 1
    - Make sure to include `/api` at the end
    - Example: `https://promptgrade-api.railway.app/api`
+   - **Note**: The Groq API key should be set on the backend server, not in Netlify
 
 5. **Deploy:**
    - Netlify will automatically deploy on every push to your main branch
@@ -227,20 +228,21 @@ If you deployed the backend separately (Option 2), update your backend CORS conf
 
 ### Frontend + Backend on Netlify (Option 1 - Recommended)
 ```
-VITE_GROQ_API_KEY=your_groq_api_key
+GROQ_API_KEY=your_groq_api_key
 MONGODB_URI=your_mongodb_connection_string
 ```
 > Note: `VITE_API_URL` is not needed - the app uses relative URLs automatically
+> Note: `GROQ_API_KEY` is server-side only (not exposed to the client)
 
 ### Frontend on Netlify, Backend Separate (Option 2)
 **Frontend (Netlify):**
 ```
-VITE_GROQ_API_KEY=your_groq_api_key
 VITE_API_URL=https://your-backend-url.com/api
 ```
 
 **Backend (Railway/Render/Fly.io):**
 ```
+GROQ_API_KEY=your_groq_api_key
 MONGODB_URI=your_mongodb_connection_string
 PORT=3000 (or auto-assigned)
 NODE_ENV=production

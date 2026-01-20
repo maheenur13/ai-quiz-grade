@@ -3,6 +3,7 @@ import cors from "cors";
 import mongoose from "mongoose";
 import quizRoutes from "./routes/quizRoutes.js";
 import submissionRoutes from "./routes/submissionRoutes.js";
+import aiRoutes from "./routes/aiRoutes.js";
 
 // Create Express app
 const app = express();
@@ -84,6 +85,7 @@ export async function connectDatabase() {
 // Routes
 app.use("/api/quizzes", quizRoutes);
 app.use("/api/submissions", submissionRoutes);
+app.use("/api/ai", aiRoutes);
 
 // Health check
 app.get("/api/health", (req, res) => {

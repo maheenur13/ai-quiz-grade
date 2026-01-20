@@ -40,15 +40,16 @@ Create a `.env` file in the root directory:
 
 ```env
 # Frontend
-VITE_GROQ_API_KEY=your_groq_api_key_here
 VITE_API_URL=http://localhost:3001/api
 
 # Backend
+GROQ_API_KEY=your_groq_api_key_here
 MONGODB_URI=your_mongodb_connection_string
 PORT=3001
 ```
 
 - Get a free Groq API key from [Groq Console](https://console.groq.com)
+  - **Note**: The API key is stored server-side only (not exposed to the client) for security
 - Get a MongoDB connection string from [MongoDB Atlas](https://www.mongodb.com/cloud/atlas) or use a local MongoDB instance
 
 3. **Run Development Server**
