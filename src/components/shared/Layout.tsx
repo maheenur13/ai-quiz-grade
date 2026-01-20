@@ -1,5 +1,5 @@
 import { Layout as AntLayout, Typography } from "antd";
-import { ReactNode } from "react";
+import type { ReactNode } from "react";
 import { ThemeToggle } from "./ThemeToggle";
 
 const { Header, Content } = AntLayout;

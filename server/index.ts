@@ -38,8 +38,7 @@ if (!MONGODB_URI) {
   console.error("  - MONGO_URI");
   console.error("  - MONGODB_URL");
   console.error("  - DATABASE_URL");
-  console.error("\nExample: MONGODB_URI=mongodb://localhost:27017/promptgrade");
-  console.error("Or for MongoDB Atlas: MONGODB_URI=mongodb+srv://username:password@cluster.mongodb.net/dbname");
+  
   process.exit(1);
 }
 
