@@ -1,12 +1,14 @@
 [build]
-  command = "pnpm build"
+  command = "pnpm install && pnpm build"
   publish = "dist"
   functions = "netlify/functions"
 
 [functions]
-  external_node_modules = ["express", "mongoose", "cors", "dotenv"]
   node_bundler = "esbuild"
   included_files = ["server/**"]
+  # Only mark mongoose as external since it has native dependencies
+  # All other modules (express, cors, etc.) will be bundled
+  external_node_modules = ["mongoose"]
 
 [[redirects]]
   force = true

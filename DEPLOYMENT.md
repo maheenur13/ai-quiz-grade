@@ -49,6 +49,16 @@ This is the easiest option since both frontend and backend are in the same repo.
 - Your API will be available at: `https://your-site.netlify.app/api/*`
 - The frontend automatically uses relative URLs when on Netlify
 
+### Troubleshooting Netlify Functions
+
+If you see errors like `Cannot find module 'express'`:
+
+1. **Check build logs**: Go to Netlify dashboard → Deploys → Click on the latest deploy → View build logs
+2. **Verify dependencies**: Ensure all backend dependencies (`express`, `cors`, `mongoose`, `serverless-http`, `@netlify/functions`) are in `dependencies` (not `devDependencies`) in `package.json`
+3. **Check Node version**: Netlify should use Node 18+ (check in Site settings → Build & deploy → Environment)
+4. **Rebuild**: Try triggering a new deployment after making changes
+5. **Check function logs**: Go to Functions tab in Netlify dashboard to see runtime errors
+
 ### Verify Deployment
 
 1. **Test Backend:**
