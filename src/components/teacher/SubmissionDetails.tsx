@@ -1,6 +1,6 @@
 import { Card, Typography, Space, Tag, Divider, Alert } from "antd";
 import { CheckCircleOutlined, CloseCircleOutlined } from "@ant-design/icons";
-import type { Quiz, Submission, EvaluationResult } from "../../types/quiz";
+import type { Quiz, Submission } from "../../types/quiz";
 
 const { Title, Text, Paragraph } = Typography;
 
