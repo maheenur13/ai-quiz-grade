@@ -5,11 +5,11 @@ import app, { connectDatabase } from "../../server/app.js";
 // Connect to MongoDB when the function is invoked
 let isConnected = false;
 
-const handler = serverless(app, {
+const serverlessHandler = serverless(app, {
   binary: ["image/*", "application/pdf"],
 });
 
-export const api: Handler = async (event, context) => {
+export const handler: Handler = async (event, context) => {
   // Ensure MongoDB connection on first invocation
   if (!isConnected) {
     try {
@@ -25,6 +25,6 @@ export const api: Handler = async (event, context) => {
   }
 
   // Call the serverless handler
-  const result = await handler(event, context);
+  const result = await serverlessHandler(event, context);
   return result as HandlerResponse;
 };
