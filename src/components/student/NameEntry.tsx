@@ -9,7 +9,6 @@ export default function NameEntry() {
   const navigate = useNavigate();
   const { link } = useParams<{ link: string }>();
   const [form] = Form.useForm();
-  const [defaultName, setDefaultName] = useState("");
   const [quizTitle, setQuizTitle] = useState("");
 
   useEffect(() => {
@@ -31,7 +30,6 @@ export default function NameEntry() {
       // Generate default participant number
       const participantNumber = Math.floor(Math.random() * 1000) + 1;
       const generatedName = `Participant ${participantNumber}`;
-      setDefaultName(generatedName);
       form.setFieldsValue({ name: generatedName });
     }).catch((error) => {
       console.error("Error loading quiz:", error);

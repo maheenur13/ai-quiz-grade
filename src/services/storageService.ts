@@ -52,7 +52,7 @@ export async function getQuizByLink(link: string): Promise<Quiz | null> {
 }
 
 // Submission operations
-export async function saveSubmission(quizId: string, submission: Submission): Promise<Submission> {
+export async function saveSubmission(_quizId: string, submission: Submission): Promise<Submission> {
   try {
     const savedSubmission = await apiService.saveSubmission(submission);
     return savedSubmission;

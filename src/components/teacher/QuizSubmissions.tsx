@@ -61,8 +61,6 @@ export default function QuizSubmissions() {
     return null;
   }
 
-  const quizId = getQuizId(quiz);
-
   // Calculate statistics
   const totalSubmissions = submissions.length;
   const avgScore = submissions.length > 0
